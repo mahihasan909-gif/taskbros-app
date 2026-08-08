@@ -100,7 +100,6 @@ export default function Schedule() {
   }
 
   async function handleShowFreeTable() {
-    if (!requireAdmin()) return;
     if (!room || members.length === 0) return;
     setError("");
     setFreeTableLoading(true);
@@ -214,7 +213,21 @@ export default function Schedule() {
                 <Text className="text-primary font-semibold">Assign a task</Text>
               </TouchableOpacity>
             </>
-          ) : null}
+          ) : (
+            <TouchableOpacity
+              onPress={handleShowFreeTable}
+              className="mt-4 border border-border rounded-2xl py-4 items-center flex-row justify-center gap-2 bg-surface"
+            >
+              {freeTableLoading ? (
+                <ActivityIndicator color="#6C5CE7" />
+              ) : (
+                <>
+                  <Ionicons name="people-outline" size={20} color="#6C5CE7" />
+                  <Text className="text-primary font-semibold">Everyone's slot</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
           {error ? <Text className="text-danger text-sm mt-3">{error}</Text> : null}
 

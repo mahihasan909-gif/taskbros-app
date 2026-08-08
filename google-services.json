@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "844795682409",
+    "project_id": "taskbros-12abd",
+    "storage_bucket": "taskbros-12abd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844795682409:android:47d28c4a8905cf3fde0cf8",
+        "android_client_info": {
+          "package_name": "com.sheikhhossainn.taskbrosapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9pghx78YUQ4yqCzTaDP1l9IQcagA8E8M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

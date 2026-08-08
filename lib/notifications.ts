@@ -55,18 +55,26 @@ export async function setupNotificationChannel() {
 // Registers this device for server-driven push reminders (works even if the
 // app was never opened that day, unlike the local alarm scheduling above).
 export async function registerPushToken(userId: string) {
-  if (!Device.isDevice) return;
+  if (!Device.isDevice) {
+    console.log("[push] not a physical device, skipping");
+    return;
+  }
   const { status } = await Notifications.getPermissionsAsync();
+  console.log("[push] permission status:", status);
   if (status !== "granted") return;
 
   try {
     const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    console.log("[push] requesting token with projectId:", projectId);
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
-    await supabase
+    console.log("[push] got token:", tokenData.data);
+    const { error } = await supabase
       .from("push_tokens")
       .upsert({ user_id: userId, token: tokenData.data, updated_at: new Date().toISOString() }, { onConflict: "token" });
+    if (error) console.log("[push] upsert error:", JSON.stringify(error));
+    else console.log("[push] token saved for user:", userId);
   } catch (err) {
-    console.log("[notif] push token registration failed", err);
+    console.log("[push] token registration failed:", JSON.stringify(err), err instanceof Error ? err.message : err);
   }
 }
 
@@ -83,6 +91,18 @@ export async function notifyTaskDone(assigneeName: string, taskTitle: string) {
     content: {
       title: `${assigneeName} done the work`,
       body: taskTitle,
+      sound: "default",
+    },
+    trigger: null,
+  });
+}
+
+// Fires immediately (used to alert the admin when a member's routine changes).
+export async function notifyRoutineChanged(memberName: string) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `${memberName} updated their routine`,
+      body: "Tap AI Suggest to see the new free-time table.",
       sound: "default",
     },
     trigger: null,

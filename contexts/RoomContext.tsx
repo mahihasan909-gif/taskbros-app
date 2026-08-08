@@ -9,7 +9,12 @@ import {
 } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./AuthContext";
-import { ensureNotificationPermission, notifyTaskDone, registerPushToken } from "../lib/notifications";
+import {
+  ensureNotificationPermission,
+  notifyRoutineChanged,
+  notifyTaskDone,
+  registerPushToken,
+} from "../lib/notifications";
 import type { Profile, Room, RoomJoinRequest, RoomMember, UserRole } from "../types/db";
 
 type MemberWithProfile = RoomMember & { profile: Profile };
@@ -147,6 +152,30 @@ export function RoomProvider({ children }: PropsWithChildren) {
             const name = members.find((m) => m.user_id === newRow.assigned_to)?.profile.full_name ?? "Someone";
             notifyTaskDone(name, newRow.task_title);
           }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [room, myRole, members]);
+
+  useEffect(() => {
+    if (!room || myRole !== "leader" || members.length === 0) return;
+
+    const memberIds = new Set(members.map((m) => m.user_id));
+
+    const channel = supabase
+      .channel(`room-${room.id}-routine-changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "routine_slots" },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { user_id?: string } | null;
+          if (!row?.user_id || !memberIds.has(row.user_id)) return;
+          const name = members.find((m) => m.user_id === row.user_id)?.profile.full_name ?? "Someone";
+          notifyRoutineChanged(name);
         }
       )
       .subscribe();
